@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import '../providers/auth_provider.dart';
+import '../routes/app_routes.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -16,25 +18,23 @@ class _LoginPageState extends State<LoginPage> {
   final TextEditingController _passwordController = TextEditingController();
 
   bool _isPasswordHidden = true;
-
-  /// 🔥 LOGIN CONNECT KE PROVIDER
   Future<void> _handleLogin() async {
     if (!_formKey.currentState!.validate()) return;
 
     final auth = context.read<AuthProvider>();
 
     final success = await auth.login(
-      email: _emailController.text,
+      username: _emailController.text,
       password: _passwordController.text,
     );
 
-    if (success) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Login Berhasil")),
-      );
+    if (!mounted) return;
 
-      /// 👉 nanti arahkan ke home
-      // context.go('/home');
+    if (success) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text("Login Berhasil")));
+      context.go(AppRoutes.homePath);
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(auth.errorMessage ?? "Login gagal")),
@@ -42,13 +42,9 @@ class _LoginPageState extends State<LoginPage> {
     }
   }
 
-  /// 🔥 VALIDATION
-  String? _validateEmail(String? value) {
+  String? _validateUsername(String? value) {
     if (value == null || value.isEmpty) {
-      return "Email tidak boleh kosong";
-    }
-    if (!value.contains('@')) {
-      return "Format email tidak valid";
+      return "Username tidak boleh kosong";
     }
     return null;
   }
@@ -74,10 +70,7 @@ class _LoginPageState extends State<LoginPage> {
           SizedBox(
             width: double.infinity,
             height: double.infinity,
-            child: Image.asset(
-              "assets/background.png",
-              fit: BoxFit.cover,
-            ),
+            child: Image.asset("assets/background.png", fit: BoxFit.cover),
           ),
 
           /// 🔵 Bottom Container
@@ -89,9 +82,7 @@ class _LoginPageState extends State<LoginPage> {
               padding: const EdgeInsets.symmetric(horizontal: 24),
               decoration: const BoxDecoration(
                 color: Color(0xFF07123A),
-                borderRadius: BorderRadius.vertical(
-                  top: Radius.circular(24),
-                ),
+                borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
               ),
               child: _buildFormContent(auth),
             ),
@@ -103,11 +94,7 @@ class _LoginPageState extends State<LoginPage> {
             left: 0,
             right: 0,
             child: Center(
-              child: Image.asset(
-                "assets/pikachu.png",
-                height: 137,
-                width: 77,
-              ),
+              child: Image.asset("assets/pikachu.png", height: 137, width: 77),
             ),
           ),
         ],
@@ -139,20 +126,17 @@ class _LoginPageState extends State<LoginPage> {
           /// Subtitle
           const Text(
             "Please sign in to continue",
-            style: TextStyle(
-              fontSize: 14,
-              color: Colors.white70,
-            ),
+            style: TextStyle(fontSize: 14, color: Colors.white70),
           ),
 
           const SizedBox(height: 24),
 
-          /// Email
+          /// Username
           _buildInputField(
             controller: _emailController,
-            hint: "Email Trainer",
-            icon: Icons.email_outlined,
-            validator: _validateEmail,
+            hint: "Username Trainer",
+            icon: Icons.person_outline,
+            validator: _validateUsername,
           ),
 
           const SizedBox(height: 16),
@@ -241,10 +225,7 @@ class _LoginPageState extends State<LoginPage> {
                     WidgetSpan(
                       child: GestureDetector(
                         onTap: () {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                                content: Text("Go to Register Page")),
-                          );
+                          context.go(AppRoutes.registerPath);
                         },
                         child: const Text(
                           "Sign up",
@@ -254,7 +235,7 @@ class _LoginPageState extends State<LoginPage> {
                           ),
                         ),
                       ),
-                    )
+                    ),
                   ],
                 ),
               ),
@@ -304,11 +285,7 @@ class _LoginPageState extends State<LoginPage> {
                 });
               }
             },
-            child: Icon(
-              icon,
-              color: Colors.white70,
-              size: 24,
-            ),
+            child: Icon(icon, color: Colors.white70, size: 24),
           ),
         ],
       ),
