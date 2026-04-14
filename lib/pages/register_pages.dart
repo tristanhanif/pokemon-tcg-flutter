@@ -153,6 +153,96 @@ class _RegisterPageState extends State<RegisterPage>
     }
   }
 
+  String? _validateName(String? value) {
+    if (value == null || value.isEmpty) {
+      return 'Nama tidak boleh kosong';
+    }
+    if (value.contains(' ')) {
+      return 'Nama tidak boleh mengandung spasi';
+    }
+    if (value.length < 3) {
+      return 'Nama minimal 3 karakter';
+    }
+    return null;
+  }
+
+  String? _validateEmail(String? value) {
+    if (value == null || value.isEmpty) {
+      return 'Email tidak boleh kosong';
+    }
+    if (!RegExp(r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}\$').hasMatch(value)) {
+      return 'Format email tidak valid';
+    }
+    return null;
+  }
+
+  String? _validatePassword(String? value) {
+    if (value == null || value.isEmpty) {
+      return 'Password tidak boleh kosong';
+    }
+    if (value.length < 6) {
+      return 'Password minimal 6 karakter';
+    }
+    return null;
+  }
+
+  String? _validateConfirmPassword(String? value) {
+    if (value == null || value.isEmpty) {
+      return 'Konfirmasi password tidak boleh kosong';
+    }
+    if (value != _passwordController.text) {
+      return 'Password tidak cocok';
+    }
+    return null;
+  }
+
+  Widget _buildInputField({
+    required TextEditingController controller,
+    required String label,
+    required IconData icon,
+    required String? Function(String?) validator,
+    bool isPassword = false,
+    bool obscureText = false,
+    VoidCallback? toggleObscure,
+  }) {
+    return Container(
+      height: 63,
+      padding: const EdgeInsets.symmetric(horizontal: 12),
+      decoration: BoxDecoration(
+        color: const Color(0xFF1B2345),
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: TextFormField(
+        controller: controller,
+        obscureText: isPassword ? obscureText : false,
+        style: const TextStyle(color: Colors.white),
+        validator: validator,
+        decoration: InputDecoration(
+          labelText: label,
+          floatingLabelBehavior: FloatingLabelBehavior.auto,
+          labelStyle: const TextStyle(
+            color: Colors.white70,
+            fontSize: 14,
+          ),
+          floatingLabelStyle: const TextStyle(
+            color: Colors.white,
+            fontSize: 12,
+            fontWeight: FontWeight.w600,
+          ),
+          border: InputBorder.none,
+          suffixIcon: GestureDetector(
+            onTap: isPassword ? toggleObscure : null,
+            child: Icon(
+              icon,
+              color: Colors.white70,
+              size: 24,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -232,10 +322,11 @@ class _RegisterPageState extends State<RegisterPage>
                                   ),
                                 ],
                               ),
-                              child: const Icon(
-                                Icons.person_add,
-                                size: 80,
-                                color: Colors.white,
+                              child: Image.asset(
+                                "assets/pikachu.png",
+                                width: 80,
+                                height: 80,
+                                fit: BoxFit.cover,
                               ),
                             ),
                           ),
@@ -383,7 +474,10 @@ class _RegisterPageState extends State<RegisterPage>
                                               if (value?.isEmpty ?? true) {
                                                 return 'Nama tidak boleh kosong';
                                               }
-                                              if (value!.length < 3) {
+                                              if (value!.contains(' ')) {
+                                                return 'Username tidak boleh mengandung spasi';
+                                              }
+                                              if (value.length < 3) {
                                                 return 'Nama minimal 3 karakter';
                                               }
                                               return null;

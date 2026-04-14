@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 import '../models/user.dart';
 
 class AuthProvider extends ChangeNotifier {
@@ -24,65 +26,68 @@ class AuthProvider extends ChangeNotifier {
     _setLoading(true);
     _errorMessage = null;
 
-    await Future.delayed(const Duration(seconds: 1));
+    try {
+      final response = await http.post(
+        Uri.parse('https://api-tcg-backend.vercel.app/api/auth/register'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({
+          'username': name,
+          'email': email,
+          'password_hash': password,
+          'confirm_password': confirmPassword,
+        }),
+      );
 
-    email = email.trim();
-
-    if (password != confirmPassword) {
-      _setError("Password tidak sama");
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        // Assuming success
+        _setLoading(false);
+        return true;
+      } else {
+        final errorData = jsonDecode(response.body);
+        _setError(errorData['message'] ?? 'Registration failed');
+        return false;
+      }
+    } catch (e) {
+      _setError('Network error: $e');
       return false;
+    } finally {
+      _setLoading(false);
     }
-
-    if (_registeredUsers.any((user) => user.email == email)) {
-      _setError("Email sudah terdaftar");
-      return false;
-    }
-
-    final newUser = User(
-      id: _registeredUsers.length + 1,
-      name: name,
-      email: email,
-      role: "user",
-      password: password, // ⚠️ nanti ganti hash kalau ke production
-    );
-
-    _registeredUsers.add(newUser);
-
-    _setLoading(false);
-    return true;
   }
 
   /// 🔑 LOGIN
   Future<bool> login({
-    required String email,
+    required String username,
     required String password,
   }) async {
     _setLoading(true);
     _errorMessage = null;
 
-    await Future.delayed(const Duration(seconds: 1));
-
-    email = email.trim();
-    password = password.trim();
-
     try {
-      final user = _registeredUsers.firstWhere(
-        (user) => user.email == email,
+      final response = await http.post(
+        Uri.parse('https://api-tcg-backend.vercel.app/api/auth/login'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({
+          'username': username,
+          'password': password,
+        }),
       );
 
-      if (user.password != password) {
-        _setError("Password salah");
+      if (response.statusCode == 200) {
+        // Assuming success, perhaps parse token if available
+        _isLoggedIn = true;
+        _setLoading(false);
+        return true;
+      } else {
+        final errorData = jsonDecode(response.body);
+        _setError(errorData['message'] ?? 'Username atau password salah');
         return false;
       }
-
-      _currentUser = user;
-      _isLoggedIn = true;
-
-      _setLoading(false);
-      return true;
     } catch (e) {
-      _setError("Email tidak ditemukan");
+      _setError('Network error: $e');
       return false;
+    } finally {
+      _setLoading(false);
     }
   }
 
