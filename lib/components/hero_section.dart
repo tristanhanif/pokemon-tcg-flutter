@@ -8,10 +8,14 @@ class HeroSection extends StatelessWidget {
 
   Color _getTypeColor(String type) {
     switch (type.toLowerCase()) {
-      case 'grass': return const Color(0xFF4DAD5B); // Match design green
-      case 'fire': return const Color(0xFFE5734A);
-      case 'water': return const Color(0xFF5090D6);
-      default: return const Color(0xFF4DAD5B);
+      case 'grass':
+        return const Color(0xFF4DAD5B); // Match design green
+      case 'fire':
+        return const Color(0xFFE5734A);
+      case 'water':
+        return const Color(0xFF5090D6);
+      default:
+        return const Color(0xFF4DAD5B);
     }
   }
 
@@ -35,12 +39,15 @@ class HeroSection extends StatelessWidget {
           // Logo
           Center(
             child: SizedBox(
-               height: 60,
-               child: Image.network('https://upload.wikimedia.org/wikipedia/commons/9/98/International_Pok%C3%A9mon_logo.svg', color: Colors.white),
+              height: 60,
+              child: Image.network(
+                'https://upload.wikimedia.org/wikipedia/commons/9/98/International_Pok%C3%A9mon_logo.svg',
+                color: Colors.white,
+              ),
             ),
           ),
           const SizedBox(height: 30),
-          
+
           Row(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
@@ -69,10 +76,10 @@ class HeroSection extends StatelessWidget {
                     ),
                     const SizedBox(height: 16),
                     Text(
-                      featuredCard?.flavorText ?? 
-                      "Ivysaur is the evolution of Bulbasaur... A reliable partner, ideal for trainers seeking a versatile Pokémon capable of facing various challenges.",
+                      featuredCard?.flavorText ??
+                          "Ivysaur is the evolution of Bulbasaur... A reliable partner, ideal for trainers seeking a versatile Pokémon capable of facing various challenges.",
                       style: TextStyle(
-                        color: Colors.white.withOpacity(0.9),
+                        color: Colors.white.withValues(alpha: 0.9),
                         fontSize: 12,
                         height: 1.5,
                       ),
@@ -81,7 +88,10 @@ class HeroSection extends StatelessWidget {
                     ),
                     const SizedBox(height: 20),
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 24,
+                        vertical: 12,
+                      ),
                       decoration: BoxDecoration(
                         color: const Color(0xFF1E293B),
                         borderRadius: BorderRadius.circular(12),
@@ -91,21 +101,28 @@ class HeroSection extends StatelessWidget {
                         children: [
                           Icon(Icons.flash_on, color: Colors.white, size: 16),
                           SizedBox(width: 8),
-                          Text('More details', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                          Text(
+                            'More details',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
                         ],
                       ),
-                    )
+                    ),
                   ],
                 ),
               ),
-              
+
               // Image Area
               Expanded(
                 flex: 1,
                 child: Hero(
                   tag: 'featured_pokemon',
                   child: Image.network(
-                    featuredCard?.images?.large ?? 'https://assets.pokemon.com/assets/cms2/img/pokedex/full/002.png',
+                    featuredCard?.images?.large ??
+                        'https://assets.pokemon.com/assets/cms2/img/pokedex/full/002.png',
                     fit: BoxFit.contain,
                     height: 250,
                   ),
@@ -122,7 +139,7 @@ class HeroSection extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(6),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.2),
+        color: Colors.white.withValues(alpha: 0.2),
         shape: BoxShape.circle,
       ),
       child: Icon(icon, color: Colors.white, size: 16),

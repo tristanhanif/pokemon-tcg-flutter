@@ -61,7 +61,7 @@ class _SplashPageState extends State<SplashPage> {
                 child: Text(
                   'Ready to catch, battle, and collect with your deck? Let’s start your journey!',
                   style: TextStyle(
-                    color: Colors.white.withOpacity(0.9),
+                    color: Colors.white.withValues(alpha: 0.9),
                     fontSize: 16,
                     height: 1.5,
                   ),

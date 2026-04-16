@@ -58,6 +58,11 @@ flutter:
   assets:
     - assets/background.png
     - assets/pikachu.png
+    - assets/register.png
+    - assets/forest_footer.png
+    - assets/pokeball.png
+    - assets/great_ball.png
+    - assets/ultra_ball.png
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images
   # For details regarding adding assets from package dependencies, see

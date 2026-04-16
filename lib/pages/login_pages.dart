@@ -78,7 +78,9 @@ class _LoginPageState extends State<LoginPage> {
             alignment: Alignment.bottomCenter,
             child: Container(
               width: double.infinity,
-              height: 752,
+              constraints: BoxConstraints(
+                maxHeight: MediaQuery.of(context).size.height * 0.85,
+              ),
               padding: const EdgeInsets.symmetric(horizontal: 24),
               decoration: const BoxDecoration(
                 color: Color(0xFF07123A),
@@ -90,7 +92,7 @@ class _LoginPageState extends State<LoginPage> {
 
           /// ⚡ Pikachu Floating
           Positioned(
-            top: MediaQuery.of(context).size.height - 752 - (137 / 2),
+            top: MediaQuery.of(context).size.height * 0.15 - (137 / 2),
             left: 0,
             right: 0,
             child: Center(
@@ -106,12 +108,13 @@ class _LoginPageState extends State<LoginPage> {
   Widget _buildFormContent(AuthProvider auth) {
     return Form(
       key: _formKey,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const SizedBox(height: 80),
+      child: SingleChildScrollView(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const SizedBox(height: 60),
 
-          /// Title
+            /// Title
           const Text(
             "Log In",
             style: TextStyle(
@@ -208,7 +211,7 @@ class _LoginPageState extends State<LoginPage> {
             ),
           ),
 
-          const Spacer(),
+          const SizedBox(height: 48),
 
           /// Bottom Text
           Padding(
@@ -218,7 +221,7 @@ class _LoginPageState extends State<LoginPage> {
                 text: TextSpan(
                   text: "Don't have an account? ",
                   style: TextStyle(
-                    color: Colors.white.withOpacity(0.5),
+                    color: Colors.white.withValues(alpha: 0.5),
                     fontSize: 12,
                   ),
                   children: [
@@ -243,8 +246,9 @@ class _LoginPageState extends State<LoginPage> {
           ),
         ],
       ),
-    );
-  }
+    ),
+  );
+}
 
   /// 🔧 INPUT FIELD
   Widget _buildInputField({

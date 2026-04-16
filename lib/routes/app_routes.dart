@@ -6,6 +6,7 @@ class AppRoutes {
   static const String registerName = 'register';
   static const String homeName = 'home';
   static const String topupName = 'topup';
+  static const String setDetailName = 'set_detail';
 
   // path route untuk navigasi
   // Paths
@@ -14,4 +15,5 @@ class AppRoutes {
   static const String registerPath = '/register';
   static const String homePath = '/home';
   static const String topupPath = '/topup';
+  static const String setDetailPath = '/set/:id';
 }

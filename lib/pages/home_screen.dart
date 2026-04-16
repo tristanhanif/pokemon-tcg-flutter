@@ -1,10 +1,9 @@
-import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:go_router/go_router.dart';
 import '../providers/pokemon_provider.dart';
-import '../components/card_component.dart';
-import '../components/hero_section.dart';
+import '../providers/auth_provider.dart';
+import '../services/analytics_service.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -14,28 +13,29 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  final ScrollController _scrollController = ScrollController();
+  late ScrollController _scrollController;
   final TextEditingController _searchController = TextEditingController();
-
-  final List<String> _types = [
-    'Grass', 'Fire', 'Water', 'Lightning', 'Psychic', 'Fighting', 'Darkness', 'Metal', 'Fairy', 'Dragon', 'Colorless'
-  ];
 
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.read<PokemonProvider>().fetchCards(isRefresh: true);
-    });
+    _scrollController = ScrollController();
     _scrollController.addListener(_onScroll);
+
+    // Load Pokemon Sets on first init
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      AnalyticsService.logScreenView('home_sets');
+      context.read<PokemonProvider>().fetchPokemonSets();
+    });
   }
 
   void _onScroll() {
-    if (_scrollController.position.pixels >= 
-        _scrollController.position.maxScrollExtent - 200) {
+    if (_scrollController.position.pixels >=
+        _scrollController.position.maxScrollExtent - 300) {
       final provider = context.read<PokemonProvider>();
-      if (!provider.isLoading && provider.hasMore) {
-        provider.fetchCards();
+      if (!provider.isLoadingSets && provider.hasMoreSets) {
+        provider.fetchPokemonSets();
       }
     }
   }
@@ -49,194 +49,297 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    const bgColor = Color(0xFF0F0F0F); // Very dark background like the reference
-
     return Scaffold(
-      backgroundColor: bgColor,
-      body: CustomScrollView(
-        controller: _scrollController,
-        slivers: [
-          // Hero Section
-          SliverToBoxAdapter(
-            child: const HeroSection(heroType: 'Grass'), // Will make dynamic later
-          ),
-
-          // Filters and Search Bar
-          SliverToBoxAdapter(
-            child: Padding(
-              padding: const EdgeInsets.fromLTRB(24, 32, 24, 24),
-              child: Row(
-                children: [
-                  // Type Filter
-                  Expanded(
-                    flex: 1,
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text('Filter by type:', style: TextStyle(color: Colors.white54, fontSize: 12)),
-                        const SizedBox(height: 8),
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                          decoration: BoxDecoration(
-                            color: const Color(0xFF1E1E1E),
-                            borderRadius: BorderRadius.circular(12),
-                            border: Border.all(color: Colors.white10),
-                          ),
-                          child: SingleChildScrollView(
-                            scrollDirection: Axis.horizontal,
-                            child: Row(
-                              children: _types.map((t) => _buildTypeMiniBadge(t)).toList(),
-                            ),
-                          ),
-                        ),
-                      ],
+      backgroundColor: const Color(0xFF1a1a2e),
+      appBar: AppBar(
+        title: const Text('Pokémon TCG Sets'),
+        elevation: 0,
+        actions: [
+          Consumer<AuthProvider>(
+            builder: (context, authProvider, _) {
+              return Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 12),
+                child: Align(
+                  alignment: Alignment.center,
+                  child: Text(
+                    '💰 ${authProvider.balance}',
+                    style: const TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.yellowAccent,
                     ),
-                  ),
-                  const SizedBox(width: 16),
-                  
-                  // Search Bar
-                  Expanded(
-                    flex: 1,
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text('Find your pokemon:', style: TextStyle(color: Colors.white54, fontSize: 12)),
-                        const SizedBox(height: 8),
-                        Container(
-                          height: 40,
-                          decoration: BoxDecoration(
-                            color: const Color(0xFF1E1E1E),
-                            borderRadius: BorderRadius.circular(12),
-                            border: Border.all(color: Colors.white10),
-                          ),
-                          child: Row(
-                            children: [
-                              Expanded(
-                                child: TextField(
-                                  controller: _searchController,
-                                  onChanged: (val) => context.read<PokemonProvider>().searchCards(val),
-                                  style: const TextStyle(color: Colors.white, fontSize: 14),
-                                  decoration: InputDecoration(
-                                    hintText: 'I choose you!',
-                                    hintStyle: TextStyle(color: Colors.white30, fontSize: 14),
-                                    border: InputBorder.none,
-                                    contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                                  ),
-                                ),
-                              ),
-                              Container(
-                                width: 40,
-                                decoration: BoxDecoration(
-                                  color: Colors.purple,
-                                  borderRadius: BorderRadius.circular(12),
-                                ),
-                                child: const Center(child: Icon(Icons.search, color: Colors.white, size: 20)),
-                              )
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-
-          // Cards Grid
-          Consumer<PokemonProvider>(
-            builder: (context, provider, child) {
-              if (provider.isLoading && provider.cards.isEmpty) {
-                return const SliverFillRemaining(
-                  child: Center(child: CircularProgressIndicator(color: Colors.green)),
-                );
-              }
-
-              if (provider.cards.isEmpty) {
-                return const SliverFillRemaining(
-                  child: Center(
-                    child: Text('No pokemon found.', style: TextStyle(color: Colors.white54)),
-                  ),
-                );
-              }
-
-              return SliverPadding(
-                padding: const EdgeInsets.symmetric(horizontal: 24),
-                sliver: SliverGrid(
-                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: 3,
-                    childAspectRatio: 0.6, // Adjusted for taller cards with stats
-                    crossAxisSpacing: 16,
-                    mainAxisSpacing: 24,
-                  ),
-                  delegate: SliverChildBuilderDelegate(
-                    (context, index) {
-                      if (index == provider.cards.length) {
-                        return const Center(child: CircularProgressIndicator(color: Colors.green));
-                      }
-                      return CardComponent(card: provider.cards[index]);
-                    },
-                    childCount: provider.cards.length + (provider.hasMore ? 1 : 0),
                   ),
                 ),
               );
             },
           ),
-          
-          // Forest Footer
-          SliverToBoxAdapter(
-             child: Container(
-               height: 100,
-               margin: const EdgeInsets.only(top: 40),
-               decoration: const BoxDecoration(
-                 image: DecorationImage(
-                   image: AssetImage('assets/forest_footer.png'), // Placeholder
-                   fit: BoxFit.cover,
-                   alignment: Alignment.topCenter,
-                 )
-               ),
-               // Fallback if asset isn't ready
-               child: Stack(
-                 children: [
-                   Positioned(
-                     bottom: 0, left: 0, right: 0,
-                     child: Container(height: 50, color: const Color(0xFF1B3D23)),
-                   )
-                 ],
-               ),
-             ),
-          )
+          Padding(
+            padding: const EdgeInsets.only(right: 16),
+            child: Center(
+              child: ElevatedButton.icon(
+                onPressed: () => context.push('/topup'),
+                icon: const Icon(Icons.add),
+                label: const Text('Top Up'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.amber,
+                  foregroundColor: Colors.black,
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+      body: Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+            child: TextField(
+              controller: _searchController,
+              onChanged: (value) {
+                context.read<PokemonProvider>().searchSets(value);
+                AnalyticsService.logEvent(
+                  'set_search',
+                  parameters: {'query': value},
+                );
+              },
+              style: const TextStyle(color: Colors.white),
+              decoration: InputDecoration(
+                hintText: 'Search sets...',
+                hintStyle: const TextStyle(color: Colors.white38),
+                prefixIcon: const Icon(Icons.search, color: Colors.white54),
+                filled: true,
+                fillColor: const Color(0xFF16213e),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(14),
+                  borderSide: BorderSide.none,
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(height: 12),
+          Expanded(
+            child: Consumer<PokemonProvider>(
+              builder: (context, pokemonProvider, _) {
+                final items = pokemonProvider.filteredPokemonSets;
+
+                if (items.isEmpty && pokemonProvider.isLoadingSets) {
+                  return const Center(
+                    child: CircularProgressIndicator(
+                      valueColor: AlwaysStoppedAnimation<Color>(Colors.amber),
+                    ),
+                  );
+                }
+
+                if (items.isEmpty) {
+                  return Center(
+                    child: Text(
+                      pokemonProvider.errorMessageSets ?? 'No sets found.',
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(color: Colors.white70),
+                    ),
+                  );
+                }
+
+                return RefreshIndicator(
+                  onRefresh: () =>
+                      pokemonProvider.fetchPokemonSets(isRefresh: true),
+                  child: ListView.separated(
+                    controller: _scrollController,
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 8,
+                    ),
+                    separatorBuilder: (_, __) => const SizedBox(height: 12),
+                    itemCount: items.length + 1,
+                    itemBuilder: (context, index) {
+                      if (index == items.length) {
+                        // This part handles the last item (pagination + footer)
+                        Widget paginationWidget;
+                        if (pokemonProvider.isLoadingSets) {
+                          paginationWidget = const Padding(
+                            padding: EdgeInsets.all(16),
+                            child: Center(
+                              child: CircularProgressIndicator(
+                                valueColor: AlwaysStoppedAnimation<Color>(
+                                  Colors.amber,
+                                ),
+                              ),
+                            ),
+                          );
+                        } else if (pokemonProvider.hasMoreSets) {
+                          paginationWidget = Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 16),
+                            child: ElevatedButton(
+                              onPressed: () {
+                                AnalyticsService.logEvent('load_more_sets');
+                                pokemonProvider.fetchPokemonSets();
+                              },
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.amber,
+                                foregroundColor: Colors.black,
+                                padding: const EdgeInsets.symmetric(
+                                  vertical: 16,
+                                ),
+                              ),
+                              child: const Text('Load More'),
+                            ),
+                          );
+                        } else {
+                          paginationWidget = const Padding(
+                            padding: EdgeInsets.symmetric(vertical: 16),
+                            child: Center(
+                              child: Text(
+                                'All sets loaded',
+                                style: TextStyle(color: Colors.white54),
+                              ),
+                            ),
+                          );
+                        }
+
+                        return Column(
+                          children: [
+                            paginationWidget,
+                            // Decorative Footer
+                            Padding(
+                              padding: const EdgeInsets.only(top: 24, bottom: 0),
+                              child: Column(
+                                children: [
+                                  const Text(
+                                    'Discover more sets in technical updates soon!',
+                                    style: TextStyle(
+                                      color: Colors.white24,
+                                      fontSize: 10,
+                                      fontStyle: FontStyle.italic,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 16),
+                                  Image.asset(
+                                    'assets/forest_footer.png',
+                                    fit: BoxFit.fitWidth,
+                                    width: double.infinity,
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        );
+                      }
+
+                      final set = items[index];
+                      return _buildSetCard(context, set);
+                    },
+                  ),
+                );
+              },
+            ),
+          ),
         ],
       ),
     );
   }
 
-  Widget _buildTypeMiniBadge(String type) {
-    Color color;
-    switch (type.toLowerCase()) {
-      case 'grass': color = const Color(0xFF4DAD5B); break;
-      case 'fire': color = const Color(0xFFE5734A); break;
-      case 'water': color = const Color(0xFF5090D6); break;
-      case 'lightning': color = const Color(0xFFF2D94E); break;
-      case 'psychic': color = const Color(0xFFA664BF); break;
-      case 'fighting': color = const Color(0xFFD67831); break;
-      case 'darkness': color = const Color(0xFF5A5366); break;
-      case 'metal': color = const Color(0xFF9EA3AC); break;
-      case 'fairy': color = const Color(0xFFEC8FE6); break;
-      case 'dragon': color = const Color(0xFF0F6AC0); break;
-      case 'colorless': color = const Color(0xFFA0A29F); break;
-      default: color = const Color(0xFFA0A29F); break;
-    }
-
-    return Container(
-      margin: const EdgeInsets.only(right: 6),
-      width: 20,
-      height: 20,
-      decoration: BoxDecoration(
-        color: color,
-        shape: BoxShape.circle,
+  Widget _buildSetCard(BuildContext context, dynamic set) {
+    return Card(
+      margin: const EdgeInsets.only(bottom: 0),
+      color: const Color(0xFF16213e),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(16),
+        onTap: () {
+          AnalyticsService.logEvent(
+            'set_clicked',
+            parameters: {'set_id': set.id},
+          );
+          context.push('/set/${set.id}', extra: set);
+        },
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Row(
+            children: [
+              Hero(
+                tag: 'set-image-${set.id}',
+                child: Container(
+                  width: 100,
+                  height: 100,
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(8),
+                    color: const Color(0xFF0f3460),
+                  ),
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(8),
+                    child: Image.network(
+                      set.logo,
+                      fit: BoxFit.cover,
+                      errorBuilder: (context, error, stackTrace) {
+                        return Container(
+                          color: const Color(0xFF0f3460),
+                          child: const Center(
+                            child: Icon(
+                              Icons.image_not_supported,
+                              color: Colors.white30,
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      set.name,
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      set.description,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        color: Colors.white54,
+                        fontSize: 12,
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 12,
+                            vertical: 6,
+                          ),
+                          decoration: BoxDecoration(
+                            color: Colors.amber.withValues(alpha: 0.2),
+                            borderRadius: BorderRadius.circular(6),
+                            border: Border.all(color: Colors.amber),
+                          ),
+                          child: Text(
+                            '💰 ${set.price}',
+                            style: const TextStyle(
+                              color: Colors.amber,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                        const Icon(Icons.arrow_forward, color: Colors.white54),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }
 }
-
