@@ -18,8 +18,7 @@ class _RegisterPageState extends State<RegisterPage> {
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
 
-  bool _obscurePassword = true;
-  bool _obscureConfirmPassword = true;
+  bool _isPasswordHidden = true;
 
   @override
   void dispose() {
@@ -103,6 +102,7 @@ class _RegisterPageState extends State<RegisterPage> {
   @override
   Widget build(BuildContext context) {
     final auth = context.watch<AuthProvider>();
+    final screenHeight = MediaQuery.of(context).size.height;
 
     return Scaffold(
       body: Stack(
@@ -119,38 +119,95 @@ class _RegisterPageState extends State<RegisterPage> {
             alignment: Alignment.bottomCenter,
             child: Container(
               width: double.infinity,
-              constraints: BoxConstraints(
-                maxHeight: MediaQuery.of(context).size.height * 0.85,
-              ),
+              height: screenHeight * 0.85,
               padding: const EdgeInsets.symmetric(horizontal: 24),
-              decoration: const BoxDecoration(
-                color: Color(0xFF07123A),
-                borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+              decoration: BoxDecoration(
+                color: const Color(0xFF020828),
+                borderRadius: const BorderRadius.vertical(
+                  top: Radius.circular(24),
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.2),
+                    blurRadius: 20,
+                    offset: const Offset(0, -5),
+                  ),
+                ],
               ),
-              child: _buildFormContent(auth),
-            ),
-          ),
+              child: SafeArea(
+                child: SingleChildScrollView(
+                  child: ConstrainedBox(
+                    constraints: BoxConstraints(minHeight: screenHeight * 0.85),
+                    child: IntrinsicHeight(
+                      child: Column(
+                        children: [
+                          _buildFormContent(auth),
 
-          /// ⚡ Pikachu Floating Di Tengah
-          Positioned(
-            top: MediaQuery.of(context).size.height * 0.18,
-            left: 0,
-            right: 0,
-            child: Center(
-              child: Image.asset("assets/pikachu.png", height: 137, width: 77),
-            ),
-          ),
+                          if (auth.errorMessage != null) ...[
+                            const SizedBox(height: 12),
+                            Padding(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 24,
+                              ),
+                              child: Container(
+                                width: double.infinity,
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 16,
+                                  vertical: 12,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: Colors.red.shade900.withOpacity(0.9),
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                child: Text(
+                                  auth.errorMessage!,
+                                  textAlign: TextAlign.center,
+                                  style: const TextStyle(
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
 
-          /// 🔙 Back Button
-          Positioned(
-            top: 16,
-            left: 16,
-            child: SafeArea(
-              child: CircleAvatar(
-                backgroundColor: Colors.white.withValues(alpha: 0.2),
-                child: IconButton(
-                  icon: const Icon(Icons.arrow_back, color: Colors.white),
-                  onPressed: () => context.go(AppRoutes.loginPath),
+                          const Spacer(),
+
+                          Padding(
+                            padding: const EdgeInsets.only(bottom: 24),
+                            child: Center(
+                              child: Text.rich(
+                                textAlign: TextAlign.center,
+                                TextSpan(
+                                  text: "Already have an account? ",
+                                  style: TextStyle(
+                                    color: Colors.white.withOpacity(0.5),
+                                    fontSize: 12,
+                                  ),
+                                  children: [
+                                    WidgetSpan(
+                                      child: GestureDetector(
+                                        onTap: () {
+                                          context.go(AppRoutes.loginPath);
+                                        },
+                                        child: const Text(
+                                          "Sign in",
+                                          style: TextStyle(
+                                            color: Color(0xFFF7573C),
+                                            fontWeight: FontWeight.w600,
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
                 ),
               ),
             ),
@@ -159,15 +216,79 @@ class _RegisterPageState extends State<RegisterPage> {
       ),
     );
   }
-  /// 🔥 FORM CONTENT
+
+  /// � INPUT FIELD (FLOATING LABEL)
+  Widget _buildInputField({
+    required TextEditingController controller,
+    required String label,
+    required IconData icon,
+    required String? Function(String?) validator,
+    bool isPassword = false,
+  }) {
+    return Container(
+      height: 63,
+      padding: const EdgeInsets.symmetric(horizontal: 10),
+      decoration: BoxDecoration(
+        color: const Color(0xFF1B2345),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: TextFormField(
+        controller: controller,
+        obscureText: isPassword ? _isPasswordHidden : false,
+        style: const TextStyle(color: Colors.white),
+        validator: validator,
+        decoration: InputDecoration(
+          labelText: label,
+          floatingLabelBehavior: FloatingLabelBehavior.auto,
+
+          /// Label style
+          labelStyle: const TextStyle(
+            color: Colors.white,
+            fontSize: 14,
+            fontWeight: FontWeight.w400,
+          ),
+
+          /// Floating label style
+          floatingLabelStyle: const TextStyle(
+            color: Colors.white,
+            fontSize: 12,
+            fontWeight: FontWeight.w600,
+          ),
+
+          border: InputBorder.none,
+
+          /// 🔥 ICON BALIK LAGI DI SINI
+          suffixIcon: GestureDetector(
+            onTap: () {
+              if (isPassword) {
+                setState(() {
+                  _isPasswordHidden = !_isPasswordHidden;
+                });
+              }
+            },
+            child: Icon(icon, color: Colors.white70, size: 24),
+          ),
+        ),
+      ),
+    );
+  }
+
+  /// �� FORM CONTENT
   Widget _buildFormContent(AuthProvider auth) {
-    return Form(
-      key: _formKey,
-      child: SingleChildScrollView(
+    return SingleChildScrollView(
+      child: Form(
+        key: _formKey,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const SizedBox(height: 60),
+            const SizedBox(height: 24),
+
+            /// ⚡ Pikachu
+            Center(
+              child: Image.asset("assets/pikachu.png", height: 137, width: 77),
+            ),
+
+            const SizedBox(height: 16),
 
             /// Title
             const Text(
@@ -179,7 +300,7 @@ class _RegisterPageState extends State<RegisterPage> {
               ),
             ),
 
-            const SizedBox(height: 8),
+            const SizedBox(height: 16),
 
             /// Subtitle
             const Text(
@@ -187,12 +308,12 @@ class _RegisterPageState extends State<RegisterPage> {
               style: TextStyle(fontSize: 14, color: Colors.white70),
             ),
 
-            const SizedBox(height: 24),
+            const SizedBox(height: 16),
 
             /// Name Field
             _buildInputField(
               controller: _nameController,
-              hint: "Nama Trainer",
+              label: "Nama Trainer",
               icon: Icons.person_outline,
               validator: _validateName,
             ),
@@ -202,7 +323,7 @@ class _RegisterPageState extends State<RegisterPage> {
             /// Email Field
             _buildInputField(
               controller: _emailController,
-              hint: "Email Trainer",
+              label: "Email Trainer",
               icon: Icons.email_outlined,
               validator: _validateEmail,
             ),
@@ -212,17 +333,11 @@ class _RegisterPageState extends State<RegisterPage> {
             /// Password Field
             _buildInputField(
               controller: _passwordController,
-              hint: "Password",
-              icon: _obscurePassword
+              label: "Password",
+              icon: _isPasswordHidden
                   ? Icons.visibility_off_outlined
                   : Icons.visibility_outlined,
               isPassword: true,
-              obscureText: _obscurePassword,
-              onToggleVisibility: () {
-                setState(() {
-                  _obscurePassword = !_obscurePassword;
-                });
-              },
               validator: _validatePassword,
             ),
 
@@ -231,17 +346,11 @@ class _RegisterPageState extends State<RegisterPage> {
             /// Confirm Password Field
             _buildInputField(
               controller: _confirmPasswordController,
-              hint: "Konfirmasi Password",
-              icon: _obscureConfirmPassword
+              label: "Konfirmasi Password",
+              icon: _isPasswordHidden
                   ? Icons.visibility_off_outlined
                   : Icons.visibility_outlined,
               isPassword: true,
-              obscureText: _obscureConfirmPassword,
-              onToggleVisibility: () {
-                setState(() {
-                  _obscureConfirmPassword = !_obscureConfirmPassword;
-                });
-              },
               validator: _validateConfirmPassword,
             ),
 
@@ -274,6 +383,7 @@ class _RegisterPageState extends State<RegisterPage> {
                           style: TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.w600,
+                            color: Colors.white,
                           ),
                         ),
                 ),
@@ -315,50 +425,6 @@ class _RegisterPageState extends State<RegisterPage> {
             ),
           ],
         ),
-      ),
-    );
-  }
-
-  /// 🔧 INPUT FIELD WIDGET
-  Widget _buildInputField({
-    required TextEditingController controller,
-    required String hint,
-    required IconData icon,
-    required String? Function(String?) validator,
-    bool isPassword = false,
-    bool obscureText = false,
-    VoidCallback? onToggleVisibility,
-  }) {
-    return Container(
-      height: 63,
-      padding: const EdgeInsets.symmetric(horizontal: 10),
-      decoration: BoxDecoration(
-        color: const Color(0xFF1B2345),
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Row(
-        children: [
-          Expanded(
-            child: TextFormField(
-              controller: controller,
-              obscureText: obscureText,
-              style: const TextStyle(color: Colors.white),
-              validator: validator,
-              decoration: InputDecoration(
-                hintText: hint,
-                hintStyle: const TextStyle(color: Colors.white54),
-                border: InputBorder.none,
-              ),
-            ),
-          ),
-          if (isPassword)
-            GestureDetector(
-              onTap: onToggleVisibility,
-              child: Icon(icon, color: Colors.white70, size: 24),
-            )
-          else
-            Icon(icon, color: Colors.white70, size: 24),
-        ],
       ),
     );
   }

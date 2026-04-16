@@ -182,8 +182,6 @@ class _LoginPageState extends State<LoginPage> {
                   ),
 
                   const SizedBox(height: 16),
-
-/// Username
           _buildInputField(
             controller: _emailController,
             label: "Username",
