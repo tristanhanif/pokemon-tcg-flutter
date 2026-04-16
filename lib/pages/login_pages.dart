@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import 'package:go_router/go_router.dart';
 import '../providers/auth_provider.dart';
@@ -18,7 +19,6 @@ class _LoginPageState extends State<LoginPage> {
   final TextEditingController _passwordController = TextEditingController();
 
   bool _isPasswordHidden = true;
-
   Future<void> _handleLogin() async {
     if (!_formKey.currentState!.validate()) return;
 
@@ -28,11 +28,11 @@ class _LoginPageState extends State<LoginPage> {
       username: _emailController.text,
       password: _passwordController.text,
     );
-
     if (success) {
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(const SnackBar(content: Text("Login Berhasil")));
+  context.go(AppRoutes.homePath);
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(auth.errorMessage ?? "Login gagal")),
@@ -125,7 +125,6 @@ class _LoginPageState extends State<LoginPage> {
                   ),
 
                   const SizedBox(height: 16),
-
                   /// Title
                   const Text(
                     "Log In",
@@ -137,7 +136,6 @@ class _LoginPageState extends State<LoginPage> {
                   ),
 
                   const SizedBox(height: 16),
-
                   /// Subtitle
                   const Text(
                     "Please sign in to continue",
@@ -256,7 +254,6 @@ class _LoginPageState extends State<LoginPage> {
             ),
           ),
         ],
-
         /// Bottom Text
         Padding(
           padding: const EdgeInsets.only(bottom: 24),

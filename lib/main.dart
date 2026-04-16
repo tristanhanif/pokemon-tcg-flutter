@@ -1,21 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'providers/auth_provider.dart';
+import 'providers/pokemon_provider.dart';
 import 'routes/app_router.dart';
 
 void main() {
-  runApp(
-    MultiProvider(
-      providers: [ChangeNotifierProvider(create: (_) => AuthProvider())],
-      child: Consumer<AuthProvider>(
-        builder: (context, authProvider, _) {
-          return MaterialApp.router(
-            routerConfig: createAppRouter(authProvider),
-          );
-        },
-      ),
-    ),
-  );
+  runApp(const MyApp());
 }
 
 class MyApp extends StatelessWidget {
@@ -24,29 +14,35 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colorScheme = ColorScheme.fromSeed(
-      seedColor: const Color(0xFFEF5350),
+      seedColor: const Color(0xFFF7573C),
       brightness: Brightness.light,
     );
 
-    final authProvider = Provider.of<AuthProvider>(context);
-    final router = createAppRouter(authProvider);
-
-    return MaterialApp.router(
-      debugShowCheckedModeBanner: false,
-      title: 'Pokémon TCG App',
-      routerConfig: router,
-      theme: ThemeData(
-        useMaterial3: true,
-        colorScheme: colorScheme,
-        appBarTheme: AppBarTheme(
-          centerTitle: false,
-          backgroundColor: colorScheme.primary,
-          foregroundColor: colorScheme.onPrimary,
+    return MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (_) => AuthProvider()),
+        ChangeNotifierProxyProvider<AuthProvider, PokemonProvider>(
+          create: (context) => PokemonProvider(context.read<AuthProvider>()),
+          update: (context, auth, previous) => PokemonProvider(auth),
         ),
-        cardTheme: const CardThemeData(
-          elevation: 2,
-          margin: EdgeInsets.symmetric(vertical: 8),
-        ),
+      ],
+      child: Consumer<AuthProvider>(
+        builder: (context, authProvider, _) {
+          return MaterialApp.router(
+            debugShowCheckedModeBanner: false,
+            title: 'Pokémon TCG App',
+            routerConfig: createAppRouter(authProvider),
+            theme: ThemeData(
+              useMaterial3: true,
+              colorScheme: colorScheme,
+              appBarTheme: AppBarTheme(
+                centerTitle: false,
+                backgroundColor: colorScheme.primary,
+                foregroundColor: colorScheme.onPrimary,
+              ),
+            ),
+          );
+        },
       ),
     );
   }

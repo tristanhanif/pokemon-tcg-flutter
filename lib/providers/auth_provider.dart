@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
@@ -7,6 +9,8 @@ class AuthProvider extends ChangeNotifier {
   bool _isLoading = false;
   String? _errorMessage;
   bool _isLoggedIn = false;
+  String? _token;
+  int _balance = 0; // Menambahkan balance mock/real
 
   User? _currentUser;
   final List<User> _registeredUsers = [];
@@ -15,6 +19,35 @@ class AuthProvider extends ChangeNotifier {
   String? get errorMessage => _errorMessage;
   bool get isLoggedIn => _isLoggedIn;
   User? get currentUser => _currentUser;
+  String? get token => _token;
+  int get balance => _balance;
+
+  AuthProvider() {
+    _loadToken();
+  }
+
+  Future<void> _loadToken() async {
+    final prefs = await SharedPreferences.getInstance();
+    _token = prefs.getString('auth_token');
+    _balance = prefs.getInt('user_balance') ?? 0;
+    if (_token != null && _token!.isNotEmpty) {
+      _isLoggedIn = true;
+    }
+    notifyListeners();
+  }
+
+  Future<void> _saveToken(String token) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('auth_token', token);
+    _token = token;
+  }
+
+  Future<void> updateBalance(int amount) async {
+    final prefs = await SharedPreferences.getInstance();
+    _balance = amount;
+    await prefs.setInt('user_balance', _balance);
+    notifyListeners();
+  }
 
   /// 🔐 REGISTER
   Future<bool> register({
@@ -92,9 +125,12 @@ class AuthProvider extends ChangeNotifier {
   }
 
   /// 🚪 LOGOUT
-  void logout() {
+  Future<void> logout() async {
     _isLoggedIn = false;
     _currentUser = null;
+    _token = null;
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove('auth_token');
     notifyListeners();
   }
 
