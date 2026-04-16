@@ -83,7 +83,13 @@ class _LoginPageState extends State<LoginPage> {
             alignment: Alignment.bottomCenter,
             child: Container(
               width: double.infinity,
+<<<<<<< HEAD
+              constraints: BoxConstraints(
+                maxHeight: MediaQuery.of(context).size.height * 0.85,
+              ),
+=======
               height: screenHeight * 0.85,
+>>>>>>> a82a2b042064581a1c2f17a32105ebb0728bd5c8
               padding: const EdgeInsets.symmetric(horizontal: 24),
               decoration: BoxDecoration(
                 color: const Color(0xFF020828),
@@ -101,6 +107,19 @@ class _LoginPageState extends State<LoginPage> {
               child: _buildFormContent(auth),
             ),
           ),
+<<<<<<< HEAD
+
+          /// ⚡ Pikachu Floating
+          Positioned(
+            top: MediaQuery.of(context).size.height * 0.15 - (137 / 2),
+            left: 0,
+            right: 0,
+            child: Center(
+              child: Image.asset("assets/pikachu.png", height: 137, width: 77),
+            ),
+          ),
+=======
+>>>>>>> a82a2b042064581a1c2f17a32105ebb0728bd5c8
         ],
       ),
     );
@@ -108,6 +127,25 @@ class _LoginPageState extends State<LoginPage> {
 
   /// 🔥 FORM CONTENT
   Widget _buildFormContent(AuthProvider auth) {
+<<<<<<< HEAD
+    return Form(
+      key: _formKey,
+      child: SingleChildScrollView(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const SizedBox(height: 60),
+
+            /// Title
+          const Text(
+            "Log In",
+            style: TextStyle(
+              fontSize: 24,
+              fontWeight: FontWeight.w600,
+              color: Colors.white,
+            ),
+          ),
+=======
     return Column(
       children: [
         Expanded(
@@ -123,6 +161,7 @@ class _LoginPageState extends State<LoginPage> {
                   Center(
                     child: Image.asset("assets/pikachu.png", height: 137, width: 77),
                   ),
+>>>>>>> a82a2b042064581a1c2f17a32105ebb0728bd5c8
 
                   const SizedBox(height: 16),
                   /// Title
@@ -217,6 +256,61 @@ class _LoginPageState extends State<LoginPage> {
                           fontWeight: FontWeight.w600,
                         ),
                       ),
+<<<<<<< HEAD
+              ),
+            ),
+          ),
+
+          const SizedBox(height: 14),
+
+          /// Forgot Password
+          Center(
+            child: GestureDetector(
+              onTap: () {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text("Forgot Password Page")),
+                );
+              },
+              child: const Text(
+                "Forgot Password?",
+                style: TextStyle(
+                  color: Color(0xFFF7573C),
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+          ),
+
+          const SizedBox(height: 48),
+
+          /// Bottom Text
+          Padding(
+            padding: const EdgeInsets.only(bottom: 24),
+            child: Center(
+              child: RichText(
+                text: TextSpan(
+                  text: "Don't have an account? ",
+                  style: TextStyle(
+                    color: Colors.white.withValues(alpha: 0.5),
+                    fontSize: 12,
+                  ),
+                  children: [
+                    WidgetSpan(
+                      child: GestureDetector(
+                        onTap: () {
+                          context.go(AppRoutes.registerPath);
+                        },
+                        child: const Text(
+                          "Sign up",
+                          style: TextStyle(
+                            color: Color(0xFFF7573C),
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+=======
+>>>>>>> a82a2b042064581a1c2f17a32105ebb0728bd5c8
                     ),
                   ),
 
@@ -252,6 +346,12 @@ class _LoginPageState extends State<LoginPage> {
             ),
           ),
         ],
+<<<<<<< HEAD
+      ),
+    ),
+  );
+}
+=======
         /// Bottom Text
         Padding(
           padding: const EdgeInsets.only(bottom: 24),
@@ -287,6 +387,7 @@ class _LoginPageState extends State<LoginPage> {
       ],
     );
   }
+>>>>>>> a82a2b042064581a1c2f17a32105ebb0728bd5c8
 
   /// 🔧 INPUT FIELD (FLOATING LABEL)
   Widget _buildInputField({

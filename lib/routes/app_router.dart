@@ -5,6 +5,7 @@ import '../pages/register_pages.dart';
 import '../pages/splash_page.dart';
 import '../pages/home_screen.dart';
 import '../pages/topup_screen.dart';
+import '../pages/set_detail_screen.dart';
 import 'app_routes.dart';
 import '../providers/auth_provider.dart';
 
@@ -51,6 +52,19 @@ GoRouter createAppRouter(AuthProvider authProvider) {
         name: AppRoutes.topupName,
         path: AppRoutes.topupPath,
         builder: (context, state) => const TopupScreen(),
+      ),
+      GoRoute(
+        name: AppRoutes.setDetailName,
+        path: AppRoutes.setDetailPath,
+        builder: (context, state) {
+          final set = state.extra as dynamic;
+          if (set == null) {
+            return const Scaffold(
+              body: Center(child: Text('Set details tidak tersedia')),
+            );
+          }
+          return SetDetailScreen(pokemonSet: set);
+        },
       ),
       GoRoute(
         name: AppRoutes.loginName,

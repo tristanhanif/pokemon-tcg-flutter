@@ -5,7 +5,7 @@ import '../providers/auth_provider.dart';
 import '../routes/app_routes.dart';
 
 class RegisterPage extends StatefulWidget {
-  const RegisterPage({Key? key}) : super(key: key);
+  const RegisterPage({super.key});
 
   @override
   State<RegisterPage> createState() => _RegisterPageState();
@@ -390,7 +390,39 @@ class _RegisterPageState extends State<RegisterPage> {
               ),
             ),
 
-            const SizedBox(height: 16),
+            const SizedBox(height: 24),
+
+            /// Bottom Text
+            Padding(
+              padding: const EdgeInsets.only(bottom: 24),
+              child: Center(
+                child: RichText(
+                  text: TextSpan(
+                    text: "Already have an account? ",
+                    style: TextStyle(
+                      color: Colors.white.withValues(alpha: 0.5),
+                      fontSize: 12,
+                    ),
+                    children: [
+                      WidgetSpan(
+                        child: GestureDetector(
+                          onTap: () {
+                            context.go(AppRoutes.loginPath);
+                          },
+                          child: const Text(
+                            "Sign in",
+                            style: TextStyle(
+                              color: Color(0xFFF7573C),
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
           ],
         ),
       ),
