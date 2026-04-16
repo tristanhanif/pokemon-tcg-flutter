@@ -159,7 +159,6 @@ class _RegisterPageState extends State<RegisterPage> {
       ),
     );
   }
-
   /// 🔥 FORM CONTENT
   Widget _buildFormContent(AuthProvider auth) {
     return Form(
