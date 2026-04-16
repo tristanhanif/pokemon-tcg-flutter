@@ -10,7 +10,7 @@ import '../providers/auth_provider.dart';
 
 GoRouter createAppRouter(AuthProvider authProvider) {
   return GoRouter(
-    initialLocation: AppRoutes.homePath,
+    initialLocation: AppRoutes.splashPath,
     refreshListenable: authProvider,
     errorBuilder: (context, state) =>
         const Scaffold(body: Center(child: Text('Page not found'))),

@@ -2,7 +2,7 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
-import 'package:shared_preferences/shared_preferences.dart';
+import 'dart:convert';
 import '../models/user.dart';
 
 class AuthProvider extends ChangeNotifier {
@@ -59,18 +59,9 @@ class AuthProvider extends ChangeNotifier {
     _setLoading(true);
     _errorMessage = null;
 
-    email = email.trim();
-
-    if (password != confirmPassword) {
-      _setError("Password tidak sama");
-      return false;
-    }
-
     try {
-      final uri = Uri.parse('https://api-tcg-backend.vercel.app/api/auth/register');
-
       final response = await http.post(
-        uri,
+        Uri.parse('https://api-tcg-backend.vercel.app/api/auth/register'),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({
           'username': name,
@@ -81,29 +72,33 @@ class AuthProvider extends ChangeNotifier {
       );
 
       if (response.statusCode == 200 || response.statusCode == 201) {
+        // Assuming success
         _setLoading(false);
         return true;
+      } else {
+        final errorData = jsonDecode(response.body);
+        _setError(errorData['message'] ?? 'Registration failed');
+        return false;
       }
-
-      final body = jsonDecode(response.body);
-      _setError(body['message']?.toString() ?? body['error']?.toString() ?? 'Registrasi gagal.');
+    } catch (e) {
+      _setError('Network error: $e');
       return false;
-    } catch (exception) {
-      _setError('Tidak dapat terhubung ke server.');
-      return false;
+    } finally {
+      _setLoading(false);
     }
   }
 
   /// 🔑 LOGIN
-  Future<bool> login({required String username, required String password}) async {
+  Future<bool> login({
+    required String username,
+    required String password,
+  }) async {
     _setLoading(true);
     _errorMessage = null;
 
     try {
-      final uri = Uri.parse('https://api-tcg-backend.vercel.app/api/auth/login');
-      
       final response = await http.post(
-        uri,
+        Uri.parse('https://api-tcg-backend.vercel.app/api/auth/login'),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({
           'username': username,
@@ -111,34 +106,21 @@ class AuthProvider extends ChangeNotifier {
         }),
       );
 
-      if (response.statusCode == 200 || response.statusCode == 201) {
-        final body = jsonDecode(response.body);
-        final token = body['data']?['token'] ?? body['token']; 
-        
-        if (token == null || token.toString().isEmpty) {
-          _setError("Token tidak diterima dari server.");
-          return false;
-        }
-
-        await _saveToken(token);
-        
-        _currentUser = User(id: 1, name: username, email: "hidden", role: "user", password: "");
-        
-        final balanceFromApi = body['data']?['balance'] ?? body['balance'];
-        _balance = balanceFromApi != null ? int.tryParse(balanceFromApi.toString()) ?? 0 : 0;
-        await updateBalance(_balance);
-
+      if (response.statusCode == 200) {
+        // Assuming success, perhaps parse token if available
         _isLoggedIn = true;
         _setLoading(false);
         return true;
+      } else {
+        final errorData = jsonDecode(response.body);
+        _setError(errorData['message'] ?? 'Username atau password salah');
+        return false;
       }
-
-      final body = jsonDecode(response.body);
-      _setError(body['message']?.toString() ?? body['error']?.toString() ?? "Login gagal. Cek email dan password.");
-      return false;
     } catch (e) {
-      _setError("Gagal terhubung ke API Login Backend: $e");
+      _setError('Network error: $e');
       return false;
+    } finally {
+      _setLoading(false);
     }
   }
 
